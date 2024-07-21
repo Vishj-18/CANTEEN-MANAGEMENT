@@ -35,7 +35,7 @@ This project is a Canteen Management System designed to manage orders, inventory
     ```
 2. Navigate to the project directory:
     ```sh
-    cd canteen-management-system
+    cd canteen-management
     ```
 3. Install backend dependencies:
     ```sh
