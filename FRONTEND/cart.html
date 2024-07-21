@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shopping Cart</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet" />
+
+  <style>
+    body {
+      background-color: #f5e0e0;
+      color: #333;
+      min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .container {
+      padding: 30px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+
+    .cart-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      transition: box-shadow 0.3s, transform 0.3s;
+      gap: 20px;
+    }
+
+    .cart-item:hover {
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      transform: scale(1.001);
+    }
+
+    .cart-item img {
+      height: 100px;
+      width: 100px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-right: 20px;
+    }
+
+    .cart-item-info {
+      flex-grow: 1;
+      display: flex-col;
+    }
+
+    .cart-item-info h5 {
+      margin: 0;
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .cart-item-info p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .cart-item-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .cart-item-controls .btn {
+      padding: 8px 12px;
+    }
+
+    .cart-total {
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-align: right;
+    }
+
+    .remove-item {
+      color: #dc3545;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: color 0.3s;
+    }
+
+    .remove-item:hover {
+      color: #bd2130;
+    }
+
+    .icon-bottle {
+      color: rgb(116, 186, 255);
+    }
+
+    .icon-veg {
+      color: rgb(25, 200, 25);
+    }
+
+    .icon-egg {
+      color: rgb(218, 218, 21);
+    }
+
+    .icon-non-veg {
+      color: rgb(206, 27, 27);
+    }
+
+    .navbar {
+      background: linear-gradient(to right, #643d8e 0%, #020711 100%);
+      padding: 10px 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s;
+      margin-bottom: 30px;
+    }
+
+    .navbar h1 {
+      color: #fff;
+      font-size: 1.8rem;
+      font-weight: 700;
+      transition: color 0.3s;
+    }
+
+    .navbar:hover h1 {
+      color: #ffffffcc;
+    }
+
+    .navbar .navbar-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .bottom {
+      display: flex;
+      align-items: end;
+      justify-content: end;
+      margin-top: 10px;
+      gap: 30px;
+    }
+
+    .btn {
+      padding: 10px 10px;
+      font-size: 18px;
+    }
+
+    .btn-pop {
+      padding: 10px 10px;
+      background-color: green;
+      font-size: 18px;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar">
+    <h1>Canteen Management Dashboard</h1>
+    <div class="navbar-buttons">
+      <button type="button" class="btn btn-light" onclick="dashboard()">
+        <i class="fas fa-hamburger"></i> Menu
+      </button>
+      <button type="button" class="btn btn-secondary" onclick="logout()">
+        Logout <i class="fas fa-sign-out-alt"></i>
+      </button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h1 class="text-center">Your Cart</h1>
+    <div id="cart-items"></div>
+    <div class="bottom">
+      <div class="cart-total"></div>
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#billSummaryModal"
+        onclick="prepareBillSummary()">
+        Proceed to payment
+      </button>
+    </div>
+  </div>
+  <!-- Bill Summary Modal -->
+  <div class="modal fade" id="billSummaryModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="billSummaryModalLabel">Bill Summary</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+            onclick="clearBillSummary()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="bill-summary" id="bill-summary">
+            <!-- Bill summary content will be injected here -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" style="background-color: green; color: white; border: none"
+            onclick="paid()">
+            Paid
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div class="modal fade" id="successModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: #28a745;">
+          <h5 class="modal-title" id="successModalLabel" style="color: white;">
+            Order Placed Successfully 🎉
+          </h5>
+        </div>
+        <div class="modal-body" style="color: #28a745;">
+          Your order is placed, will be delivered shortly.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  async function paid() {
+    document.getElementById("bill-summary").innerHTML = "";
+    const payment = await fetch("http://localhost:3000/payment", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      },
+      body: JSON.stringify({
+        mop: "cash",
+      }),
+    });
+    if (payment.ok) {
+      // Close model
+      bootstrap.Modal.getInstance(
+        document.getElementById("billSummaryModal")
+      ).hide();
+
+      // Show the success modal
+      const successModal = new bootstrap.Modal(
+        document.getElementById("successModal")
+      );
+      successModal.show();
+
+      // Redirect to dashboard.html after 4 seconds
+      setTimeout(() => {
+        window.location.href = "dashboard.html";
+      }, 4000);
+      clearBillSummary();
+    }
+  }
+  function clearBillSummary() {
+    document.getElementById("bill-summary").innerHTML = "";
+  }
+  function prepareBillSummary() {
+    fetch("http://localhost:3000/cart", {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        const billSummaryContainer = document.getElementById("bill-summary");
+        let total = 0;
+
+        data.cartItems.forEach((cartItem) => {
+          const item = cartItem.itemId;
+          const quantity = cartItem.quantity;
+          const itemTotal = item.price * quantity;
+
+          // Display each item in the bill summary
+          billSummaryContainer.innerHTML += `
+                <div class="item d-flex justify-content-between align-items-center py-2">
+                  <div>
+                    <strong>${item.name}</strong>
+                    <span class="text-muted"> (x${quantity})</span>
+                  </div>
+                  <span>₹${itemTotal.toFixed(2)}</span>
+                </div>
+              `;
+
+          total += itemTotal;
+        });
+
+        // Display the total at the end
+        billSummaryContainer.innerHTML += `
+              <div class="d-flex justify-content-between align-items-center mt-4">
+                <strong>Total:</strong>
+                <strong>₹${total.toFixed(2)}</strong>
+              </div>
+            `;
+      });
+  }
+
+  function logout() {
+    localStorage.clear();
+    window.location.href = "login.html";
+  }
+  function dashboard() {
+    window.location.href = "dashboard.html";
+  }
+  function loadItems() {
+    fetch("http://localhost:3000/cart", {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        const cartItemsContainer = document.getElementById("cart-items");
+        let total = 0;
+
+        cartItemsContainer.innerHTML = "";
+
+        data.cartItems.forEach((cartItem) => {
+          const item = cartItem.itemId;
+          const quantity = cartItem.quantity;
+          total += item.price * quantity;
+
+          cartItemsContainer.innerHTML += `
+                <div class="cart-item" id="cart-item-${cartItem._id}">
+                  <img src="${item.image}" alt="${item.name}" />
+                  <div class="cart-item-info">
+                    <h5>${item.name}
+                      ${item.type === "non-veg"
+              ? '<i class="fas fa-drumstick-bite icon-non-veg"></i>'
+              : item.type === "egg"
+                ? '<i class="fas fa-egg icon-egg"></i>'
+                : item.type === "veg"
+                  ? '<i class="fas fa-leaf icon-veg"></i>'
+                  : '<i class="fas fa-prescription-bottle icon-bottle"></i>'
+            }</h5>
+                    <p>${item.description}</p>
+                    <p>Price: <span> ₹${item.price}</span></p>
+                    <p id="cart-total-${cartItem._id}">Total: ₹${item.price * quantity
+            }</p>
+                  </div>
+                  <div class="cart-item-controls">
+                    <button
+                      class="btn btn-sm btn-secondary"
+                      onclick="decreaseQuantity('${item._id}')"
+                    >
+                      -
+                    </button>
+                    <span id="item-quantity-${item._id}">${cartItem.quantity
+            }</span>
+                    <button
+                      class="btn btn-sm btn-secondary"
+                      onclick="increaseQuantity('${item._id}')"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              `;
+        });
+
+        document.querySelector(".cart-total").textContent =
+          "Total: ₹" + total;
+      });
+  }
+  async function updateCart(itemId, quantity) {
+    const userId = JSON.parse(localStorage.getItem("user"))._id;
+    const updateCart = await fetch("http://localhost:3000/update-order", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      },
+      body: JSON.stringify({
+        userId,
+        itemId,
+        quantity,
+      }),
+    });
+    const cartResp = await updateCart.json();
+    if (updateCart.ok) {
+      return true;
+    } else {
+      errorText.innerText = cartResp.message;
+      errorModal.show();
+      return false;
+    }
+  }
+
+  async function increaseQuantity(itemId) {
+    const quantityElement = document.getElementById(
+      "item-quantity-" + itemId
+    );
+    let quantity = parseInt(quantityElement.innerText);
+    const updated = await updateCart(itemId, quantity + 1);
+    if (updated) {
+      quantityElement.innerText = quantity + 1;
+      updateTotal();
+    }
+  }
+
+  async function decreaseQuantity(itemId) {
+    const quantityElement = document.getElementById(
+      "item-quantity-" + itemId
+    );
+    let quantity = parseInt(quantityElement.innerText);
+    let update = false;
+    if (quantity > 0) update = await updateCart(itemId, quantity - 1);
+    if (quantity - 1 === 0) loadItems();
+    if (update) {
+      quantityElement.innerText = quantity - 1;
+      updateTotal();
+    }
+  }
+
+  function updateTotal() {
+    fetch("http://localhost:3000/cart", {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + localStorage.getItem("token"),
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        let total = 0;
+        data.cartItems.forEach((cartItem) => {
+          total += cartItem.itemId.price * cartItem.quantity;
+          document.getElementById(
+            `cart-total-${cartItem._id}`
+          ).textContent = `Total: ₹${cartItem.itemId.price * cartItem.quantity
+          }`;
+        });
+
+        document.querySelector(".cart-total").textContent =
+          "Total: ₹" + total;
+      });
+  }
+
+  window.onload = loadItems;
+</script>
+
+</html>
